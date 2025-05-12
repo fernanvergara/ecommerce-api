@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos del Usuario</title>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        #usuario-info {
+            text-align: left;
+            margin-top: 20px;
+            display: none;
+        }
+        #usuario-info p {
+            margin: 10px 0;
+        }
+        #mensaje-error {
+            color: red;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User´s Data</h1>
+        <div id="usuario-info">
+            <p><strong>Name:</strong> <span id="nombre"></span></p>
+            <p><strong>Last Name:</strong> <span id="apellido"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+             <p><strong>Role:</strong> <span id="rol"></span></p>
+        </div>
+        <div id="mensaje-error">
+            <p>Failed to retrieve user information. The JWT token is invalid or not found..</p>
+        </div>
+    </div>
+
+    <script>
+    const token = localStorage.getItem('token');
+    const usuarioInfoDiv = document.getElementById('usuario-info');
+    const mensajeErrorDiv = document.getElementById('mensaje-error');
+
+    if (token) {
+        try {
+            const decodedToken = jwt_decode(token);
+            console.log(decodedToken);
+
+            document.getElementById('name').textContent = decodedToken.user.name;
+            document.getElementById('lastName').textContent = decodedToken.user.lastName;
+            document.getElementById('email').textContent = decodedToken.user.email;
+             document.getElementById('role').textContent = decodedToken.role;
+
+            usuarioInfoDiv.style.display = 'block';
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            mensajeErrorDiv.style.display = 'block';
+        }
+    } else {
+        mensajeErrorDiv.style.display = 'block';
+    }
+    </script>
+</body>
+</html>

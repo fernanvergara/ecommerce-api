@@ -31,7 +31,7 @@ public class StockService {
     public Optional<Stock> getStockById(Long id) {
         Optional<Stock> existingStock = stockRepository.findById(id);
         if (existingStock.isPresent()) {
-            return stockRepository.findById(id);
+            return existingStock;
         } else {
              throw new ObjectNotFoundException("Stock not found with id:" + id);
         }
@@ -41,9 +41,8 @@ public class StockService {
         return stockRepository.save(stock);
     }
 
-    @Transactional
     public Stock updateStock(Long id, Stock stock) {
-        Optional<Stock> existingStock = getStockById(id);
+        Optional<Stock> existingStock = stockRepository.findById(id);
         if (existingStock.isPresent()) {
             Stock updatedStock = existingStock.get();
             updatedStock.setProduct(stock.getProduct());

@@ -14,8 +14,11 @@ import com.java.demo.ecommerceapi.exception.UserAlreadyExistsException;
 import com.java.demo.ecommerceapi.model.User;
 import com.java.demo.ecommerceapi.service.UserService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.Map;
 
+@Tag(name = "Authentication", description = "Endpoints for user registration, created by default with the USER role")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

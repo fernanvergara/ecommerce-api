@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.java.demo.ecommerceapi.exception.ObjectNotFoundException;
 import com.java.demo.ecommerceapi.model.Product;
 import com.java.demo.ecommerceapi.model.Stock;
 import com.java.demo.ecommerceapi.repository.StockRepository;
@@ -112,7 +113,7 @@ public class StockServiceTest {
         when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        Exception exception = assertThrows(ObjectNotFoundException.class, () -> {
             stockService.updateStock(stockId, updatedStock);
         });
         assertEquals("Stock of 'null' not found with id:100", exception.getMessage());

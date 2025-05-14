@@ -1,31 +1,30 @@
 package com.java.demo.ecommerceapi.controllertest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.java.demo.ecommerceapi.config.JwtService;
-import com.java.demo.ecommerceapi.controller.StockController;
+import com.java.demo.ecommerceapi.enums.OrderStatus;
 import com.java.demo.ecommerceapi.model.*;
-import com.java.demo.ecommerceapi.service.IUserService;
-
+import com.java.demo.ecommerceapi.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@WebMvcTest(StockController.class)
-@Import(StockIntegrationTest.TestSecurityConfig.class)
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+@SpringBootTest 
+@AutoConfigureMockMvc
+@Transactional
 public class OrderIntegrationTest {
 
     @Autowired
@@ -34,116 +33,122 @@ public class OrderIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private JwtService jwtService;
+    @Autowired
+    private UserRepository userRepository;
 
-    @MockBean
-    private IUserService userService;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    @Test
-    @WithMockUser
-    public void testCreateOrder() throws Exception {
-        User user = new User();
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private BrandRepository brandRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private StockRepository stockRepository;
+
+    private User user;
+    private Brand brand;
+    private Category category;
+    private Product product;
+    private Stock stock;
+
+    @BeforeEach
+    public void setUp() {
+        // Limpiar la base de datos antes de cada prueba
+        orderRepository.deleteAll();
+        stockRepository.deleteAll();
+        productRepository.deleteAll();
+        categoryRepository.deleteAll();
+        brandRepository.deleteAll();
+        userRepository.deleteAll();
+
+        // Crear y guardar un usuario
+        user = new User();
         user.setUsername("testuser");
-        user.setPassword("password"); 
+        user.setPassword("password");
         user.setEmail("test@example.com");
+        user = userRepository.save(user);
 
-        Brand brand = new Brand();
+        // Crear y guardar una marca
+        brand = new Brand();
         brand.setName("Test Brand");
+        brand = brandRepository.save(brand);
 
-        Category category = new Category();
+        // Crear y guardar una categoría
+        category = new Category();
         category.setName("Test Category");
+        category = categoryRepository.save(category);
 
-        Product product = new Product();
+        // Crear y guardar un producto
+        product = new Product();
         product.setName("Test Product");
         product.setDescription("Test Description");
-        product.setPrice(new BigDecimal("100.00"));
+        product.setPrice(new BigDecimal("100"));
         product.setBrand(brand);
         product.setCategory(category);
+        product = productRepository.save(product);
 
-        // Crear un stock para el producto
-        Stock stock = new Stock();
+        // Crear y guardar stock para el producto
+        stock = new Stock();
         stock.setProduct(product);
-        stock.setQuantity(10);  // Asegúrate de que haya suficiente stock para la orden
+        stock.setQuantity(10);
         stock.setLocation("Test Location");
+        stock = stockRepository.save(stock);
+    }
 
+    @Test
+    @WithMockUser(username = "testuser")
+    public void testCreateOrder() throws Exception {
         // Crear el cuerpo de la petición para crear la orden
         List<Map<String, Object>> orderItems = List.of(
                 Map.of("productId", product.getId(), "quantity", 2)
         );
         String orderJson = objectMapper.writeValueAsString(orderItems);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/orders/create")
+        mockMvc.perform(post("/api/orders/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(orderJson))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.totalAmount").value(200.00)); // Verifica el total
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.totalAmount").value(200));
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "testuser")
     public void testGetOrdersByUser() throws Exception {
         // Crear una orden para el usuario de prueba
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setEmail("test@example.com");
-
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
-        order.setTotalAmount(new BigDecimal("100.00"));
+        order.setTotalAmount(new BigDecimal("100"));
+        order.setStatus(OrderStatus.PENDING);
+        orderRepository.save(order); // Guardar la orden en la base de datos
 
-        // Simular que el usuario tiene una orden
-        List<Order> orders = List.of(order);
-
-        // Configurar el mock del servicio para que devuelva la orden creada
-        // No es necesario aquí, ya que la orden se guarda en la misma transacción y la recupera la consulta
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/orders/user"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].totalAmount").value(100.00));
+        mockMvc.perform(get("/api/orders/user"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].totalAmount").value(100));
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "testuser")
     public void testGetOrderById() throws Exception {
         // Crear una orden para obtener su ID
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setEmail("test@example.com");
-
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
-        order.setTotalAmount(new BigDecimal("100.00"));
+        order.setTotalAmount(new BigDecimal("100"));
+        order.setStatus(OrderStatus.PENDING);
+        order = orderRepository.save(order); // Guardar la orden y obtenerla con el ID asignado
 
-        // Guardar la orden y obtiene el ID
-        // No estoy usando el servicio directamente, así que la orden se guarda y recupera en la misma transacción
-
-        // Simular la creación de la orden (esto normalmente lo haría el servicio)
-        // En una prueba de integración, la base de datos está involucrada, así que no necesito simular el guardado.
-
-        // Ahora, realizo la petición para obtener la orden por ID, asumiendo que el ID es 1 (o el que sea generado por la BD)
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/orders/1")) // Suponiendo que el ID es 1, cámbiarlo si es necesario
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.totalAmount").value(100.00));
-    }
-
-    static class TestSecurityConfig {
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            http.csrf().disable()
-                    .authorizeHttpRequests()
-                    .anyRequest().permitAll()
-                    .and()
-                    .sessionManagement().disable();
-            return http.build();
-        }
+        mockMvc.perform(get("/api/orders/" + order.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.totalAmount").value(100.00));
     }
 }
-

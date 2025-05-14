@@ -1,6 +1,5 @@
 package com.java.demo.ecommerceapi.service;
 
-import com.java.demo.ecommerceapi.exception.ObjectNotFoundException;
 import com.java.demo.ecommerceapi.exception.UserAlreadyExistsException;
 import com.java.demo.ecommerceapi.model.Role;
 import com.java.demo.ecommerceapi.model.User;
@@ -16,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService implements IUserService, UserDetailsService{
@@ -31,7 +29,6 @@ public class UserService implements IUserService, UserDetailsService{
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
     public User registerUser(String username, String password, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new UserAlreadyExistsException("Username '"+username+"' already exists");
@@ -45,9 +42,12 @@ public class UserService implements IUserService, UserDetailsService{
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         // Asignar rol por defecto
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new ObjectNotFoundException("Role 'ROLE_USER' not found"));
-        user.setRoles(List.of(userRole));
+        if((roleRepository.findByName("ROLE_USER")).isEmpty()){
+            roleRepository.save(new Role(null, "ROLE_USER", null));
+        }
+        Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
+//                .orElseThrow(() -> new ObjectNotFoundException("Role 'ROLE_USER' not found"));
+        user.setRoles(List.of(userRole.get()));
         return userRepository.save(user);
     }
 

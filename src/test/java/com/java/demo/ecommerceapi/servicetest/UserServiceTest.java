@@ -67,7 +67,7 @@ public class UserServiceTest {
         assertEquals("ROLE_USER", result.getRoles().get(0).getName());
         verify(userRepository, times(1)).findByUsername(username);
         verify(userRepository, times(1)).findByEmail(email);
-        verify(roleRepository, times(1)).findByName("ROLE_USER");
+        verify(roleRepository, times(2)).findByName("ROLE_USER");
         verify(passwordEncoder, times(1)).encode(password);
         verify(userRepository, times(1)).save(any(User.class));
     }

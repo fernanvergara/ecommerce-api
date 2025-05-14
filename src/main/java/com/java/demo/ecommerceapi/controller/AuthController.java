@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.java.demo.ecommerceapi.config.JwtService;
 import com.java.demo.ecommerceapi.service.UserService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Tag(name = "Authentication", description = "Endpoints for user authentication and registration")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

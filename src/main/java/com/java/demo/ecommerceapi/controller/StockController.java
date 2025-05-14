@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import com.java.demo.ecommerceapi.model.Stock;
 import com.java.demo.ecommerceapi.service.StockService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Authentication", description = "Endpoints for managing stock products")
 @RestController
 @RequestMapping("/api/stocks")
 public class StockController {
@@ -24,7 +27,11 @@ public class StockController {
     @GetMapping
     public ResponseEntity<List<Stock>> getAllStocks() {
         List<Stock> stocks = stockService.getAllStocks();
-        return new ResponseEntity<>(stocks, HttpStatus.OK);
+        if (stocks.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }else{
+            return new ResponseEntity<>(stocks, HttpStatus.OK);
+        }
     }
 
     @GetMapping("/{id}")
@@ -40,7 +47,11 @@ public class StockController {
     @PostMapping
     public ResponseEntity<Stock> createStock(@RequestBody Stock stock) {
         Stock createdStock = stockService.createStock(stock);
-        return new ResponseEntity<>(createdStock, HttpStatus.CREATED);
+        if(createdStock == null){
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }else{
+            return new ResponseEntity<>(createdStock, HttpStatus.CREATED);
+        }
     }
 
     @PutMapping("/{id}")
@@ -55,8 +66,13 @@ public class StockController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStock(@PathVariable Long id) {
-        stockService.deleteStock(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Optional<Stock> existingStock = stockService.getStockById(id);
+        if(existingStock.isPresent()){
+            stockService.deleteStock(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
     }
 
      @GetMapping("/product/{productId}/location/{location}")

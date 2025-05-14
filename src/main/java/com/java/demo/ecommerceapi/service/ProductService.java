@@ -34,12 +34,7 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        Optional<Product> existingProduct = productRepository.findByName(product.getName());
-        if(existingProduct.isEmpty()){
-            return productRepository.save(product);
-        }else{
-            throw new ObjectNotFoundException("Product '"+product.getName()+"' already exists with id:" + existingProduct.get().getId());
-        }
+        return productRepository.save(product);
     }
 
     @Transactional
@@ -80,6 +75,14 @@ public class ProductService {
 
     public List<Product> searchProductsByCategory(String categoryName) {
         return productRepository.findByCategoryNameIgnoreCase(categoryName);
+    }
+
+    public List<Product> searchProductsByPriceMinimun(BigDecimal minPrice) {
+        return productRepository.findByPriceMinimun(minPrice);
+    }
+
+    public List<Product> searchProductsByPriceMaximun(BigDecimal maxPrice) {
+        return productRepository.findByPriceMaximun(maxPrice);
     }
 
     public List<Product> searchProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {

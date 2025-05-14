@@ -15,6 +15,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EcommerceApiApplicationTests {
@@ -22,17 +23,20 @@ class EcommerceApiApplicationTests {
     private TestRestTemplate restTemplate;
 
     @Test
+    @WithMockUser
     void contextLoads() {
     }
 
 	@Test
-	void testHealthEndpoint() {
+    @WithMockUser
+    void testHealthEndpoint() {
 		ResponseEntity<Map> response = restTemplate.getForEntity("/actuator/health", Map.class); // Cambia String.class a Map.class
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("UP", response.getBody().get("status")); // Verifica el valor del campo "status"
 	}
 
 	@Test
+    @WithMockUser
     void testMain() {
         // Capturamos la salida estándar (System.out) para verificar si se imprime algo.
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();

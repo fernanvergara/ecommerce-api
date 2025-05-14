@@ -2,46 +2,33 @@ package com.java.demo.ecommerceapi.controllertest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java.demo.ecommerceapi.model.Product;
-import com.java.demo.ecommerceapi.model.Stock;
-import com.java.demo.ecommerceapi.config.JwtService;
-import com.java.demo.ecommerceapi.controller.ProductController;
+import com.java.demo.ecommerceapi.dto.ProductDTO;
 import com.java.demo.ecommerceapi.model.Brand;
 import com.java.demo.ecommerceapi.model.Category;
 import com.java.demo.ecommerceapi.repository.ProductRepository;
-import com.java.demo.ecommerceapi.service.BrandService;
-import com.java.demo.ecommerceapi.service.CategoryService;
-import com.java.demo.ecommerceapi.service.IUserService;
-import com.java.demo.ecommerceapi.service.ProductService;
 import com.java.demo.ecommerceapi.repository.BrandRepository;
 import com.java.demo.ecommerceapi.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.annotation.Transactional; // Importa la anotación @Transactional
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
-@WebMvcTest(ProductController.class)
-@Import(ProductIntegrationTest.TestSecurityConfig.class)
+@SpringBootTest 
+@AutoConfigureMockMvc
+@Transactional
 public class ProductIntegrationTest {
 
     @Autowired
@@ -50,82 +37,75 @@ public class ProductIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private ProductService productService;
+    @Autowired
+    private ProductRepository productRepository;
 
-    @MockBean
-    private BrandService brandService;
+    @Autowired
+    private BrandRepository brandRepository;
 
-    @MockBean
-    private CategoryService categoryService;
-
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private IUserService userService;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     private Brand testBrand;
     private Category testCategory;
+    private Product product1;
 
     @BeforeEach
     void setUp() {
+        brandRepository.deleteAll();
+        categoryRepository.deleteAll();
+        productRepository.deleteAll();
+
         testBrand = new Brand();
         testBrand.setName("Test Brand");
+        testBrand = brandRepository.save(testBrand);
  
         testCategory = new Category();
         testCategory.setName("Test Category");
-    }
+        testCategory = categoryRepository.save(testCategory);
 
-    @Test
-    void testGetAllProducts() throws Exception {
-        Product product1 = new Product();
+        product1 = new Product();
         product1.setName("Product 1");
         product1.setDescription("Description 1");
         product1.setPrice(new BigDecimal("10.00"));
         product1.setBrand(testBrand);
         product1.setCategory(testCategory);
- 
+        product1 = productRepository.save(product1);
+
+}
+
+    @Test
+    void testGetAllProducts() throws Exception { 
         Product product2 = new Product();
         product2.setName("Product 2");
         product2.setDescription("Description 2");
         product2.setPrice(new BigDecimal("20.00"));
         product2.setBrand(testBrand);
         product2.setCategory(testCategory);
+        productRepository.save(product2);
  
-        List<Product> products = List.of(product1, product2);
-        when(productService.getAllProducts()).thenReturn(products);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products"))
+        mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].name", is("Product 1")))
                 .andExpect(jsonPath("$[0].description", is("Description 1")))
-                .andExpect(jsonPath("$[0].price", is(10.00)))
+                .andExpect(jsonPath("$[0].price", is(10.0)))
                 .andExpect(jsonPath("$[1].name", is("Product 2")))
                 .andExpect(jsonPath("$[1].description", is("Description 2")))
-                .andExpect(jsonPath("$[1].price", is(20.00)));
+                .andExpect(jsonPath("$[1].price", is(20.0)));
     }
 
     @Test
     void testGetProductById() throws Exception {
-        Product product1 = new Product();
-        product1.setId(1L);
-        product1.setName("Product A");
-        product1.setDescription("Description A");
-        product1.setPrice(new BigDecimal("15.50"));
-        product1.setBrand(testBrand);
-        product1.setCategory(testCategory);
-        when(productService.getProductById(1L)).thenReturn(Optional.of(product1) );
-        when(productService.getProductById(999L)).thenReturn(Optional.empty() );
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/" + product1.getId())) // Usa el ID de la BD
+        mockMvc.perform(get("/api/products/" + product1.getId())) // Usa el ID de la BD
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("Product A")))
-                .andExpect(jsonPath("$.description", is("Description A")))
-                .andExpect(jsonPath("$.price", is(15.50)));
+                .andExpect(jsonPath("$.name", is("Product 1")))
+                .andExpect(jsonPath("$.description", is("Description 1")))
+                .andExpect(jsonPath("$.price", is(10.0)));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/999"))
+        mockMvc.perform(get("/api/products/999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -137,27 +117,26 @@ public class ProductIntegrationTest {
         newProduct.setPrice(new BigDecimal("7.75"));
         newProduct.setBrand(testBrand);
         newProduct.setCategory(testCategory);
-        when(productService.createProduct(any(Product.class))).thenReturn(newProduct);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/products")
+        String productJson =  objectMapper.writeValueAsString(newProduct);
+        String response = mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProduct)))
+                        .content(productJson))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name", is("New Product")))
                 .andExpect(jsonPath("$.description", is("New Description")))
-                .andExpect(jsonPath("$.price", is(7.75)));
-    }
+                .andExpect(jsonPath("$.price", is(7.75)))
+                .andReturn().getResponse().getContentAsString();
+        System.out.println("Response: " + response);
+
+        ProductDTO actualProduct = objectMapper.readValue(response, ProductDTO.class);
+        assertEquals("New Product", actualProduct.getName());
+    assertEquals("New Description", actualProduct.getDescription());
+    assertEquals(new BigDecimal("7.75"), actualProduct.getPrice()); // Mejor comparación de BigDecimal
+
+}
 
     @Test
     void testUpdateProduct() throws Exception {
-        Product product1 = new Product();
-        product1.setId(1L);
-        product1.setName("Product B");
-        product1.setDescription("Description B");
-        product1.setPrice(new BigDecimal("22.25"));
-        product1.setBrand(testBrand);
-        product1.setCategory(testCategory);
-
         Product updatedProduct = new Product();
         updatedProduct.setId(product1.getId()); 
         updatedProduct.setName("Updated Product");
@@ -166,66 +145,44 @@ public class ProductIntegrationTest {
         updatedProduct.setBrand(testBrand);
         updatedProduct.setCategory(testCategory);
 
-        when(productService.updateProduct(eq(1L), any(Product.class))).thenReturn(updatedProduct);
-        when(productService.updateProduct(eq(999L), any(Product.class))).thenReturn(null); 
-        when(productService.getProductById(1L)).thenReturn(Optional.of(product1));
-        when(productService.getProductById(999L)).thenReturn(Optional.empty());
+        String productJson = objectMapper.writeValueAsString(updatedProduct);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/products/" + product1.getId())
+        mockMvc.perform(put("/api/products/" + product1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedProduct)))
+                        .content(productJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Updated Product")))
                 .andExpect(jsonPath("$.description", is("Updated Description")))
                 .andExpect(jsonPath("$.price", is(33.30)));
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/products/999")
+        mockMvc.perform(put("/api/products/999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedProduct)))
+                        .content(productJson))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteProduct() throws Exception {
-        Product product1 = new Product();
-        product1.setId(1L);
-        product1.setName("Product C");
-        product1.setDescription("Description C");
-        product1.setPrice(new BigDecimal("9.99"));
-        product1.setBrand(testBrand);
-        product1.setCategory(testCategory);
-;
-        when(productService.getProductById(1L)).thenReturn(Optional.of(product1) );
-        doNothing().when(productService).deleteProduct(1L);
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/products/" + product1.getId())) // Usa el ID de la BD
+
+        mockMvc.perform(delete("/api/products/" + product1.getId())) // Usa el ID de la BD
                 .andExpect(status().isOk());
 
-
-        when(productService.getProductById(1L)).thenReturn(Optional.empty());
-        doNothing().when(productService).deleteProduct(1L);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/" + product1.getId())) // Verifica que ya no existe
+        mockMvc.perform(get("/api/products/" + product1.getId())) // Verifica que ya no existe
                 .andExpect(status().isNotFound());
 
-        doNothing().when(productService).deleteProduct(999L);
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/products/999"))
-                .andExpect(status().isOk()); // El controlador debe manejar la eliminación de un no existente
+        mockMvc.perform(delete("/api/products/999"))
+                .andExpect(status().isNotFound()); 
     }
 
     @Test
     void testSearchProducts() throws Exception {
-        Product product1 = new Product();
-        product1.setName("Product Alpha");
-        product1.setDescription("Description 1");
-        product1.setPrice(new BigDecimal("10.00"));
-        product1.setBrand(testBrand);
-        product1.setCategory(testCategory);
-
         Product product2 = new Product();
         product2.setName("Product Beta");
         product2.setDescription("Description 2");
         product2.setPrice(new BigDecimal("20.00"));
         product2.setBrand(testBrand);
         product2.setCategory(testCategory);
+        productRepository.save(product2);
 
         Product product3 = new Product();
         product3.setName("Alpha Product");
@@ -233,60 +190,56 @@ public class ProductIntegrationTest {
         product3.setPrice(new BigDecimal("15.00"));
         product3.setBrand(testBrand);
         product3.setCategory(testCategory);
+        productRepository.save(product3);
 
-        List<Product> products = List.of(product1, product2, product3);
-
-        when(productService.searchProductsByName("Alpha")).thenReturn( List.of(product1, product3) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search").param("name", "Alpha"))
+        mockMvc.perform(get("/api/products/search").param("name", "Product"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].name", is("Alpha Product")))
-                .andExpect(jsonPath("$[1].name", is("Product Alpha")));
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].name", is("Product 1")))
+                .andExpect(jsonPath("$[1].name", is("Product Beta")))
+                .andExpect(jsonPath("$[2].name", is("Alpha Product")));
 
-        when(productService.searchProductsByName("alpha")).thenReturn( List.of(product1, product3) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search").param("name", "alpha"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
-
-        when(productService.searchProductsByCategory("Test Category")).thenReturn( List.of(product1, product2, product3) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search").param("category", "Test Category"))
+        mockMvc.perform(get("/api/products/search").param("name", "product"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)));
 
-        when(productService.searchProductsByPriceRange(new BigDecimal(12), null)).thenReturn( List.of( product2, product3) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search").param("minPrice", "12.00"))
+        mockMvc.perform(get("/api/products/search").param("category", "Test Category"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+
+        mockMvc.perform(get("/api/products/search").param("minPrice", "12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].price", is(15.00)))
-                .andExpect(jsonPath("$[1].price", is(20.00)));
+                .andExpect(jsonPath("$[0].price", is(20.00)))
+                .andExpect(jsonPath("$[1].price", is(15.00)));
 
-        when(productService.searchProductsByPriceRange(null, new BigDecimal(18))).thenReturn( List.of( product1, product2) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search").param("maxPrice", "18.00"))
+        mockMvc.perform(get("/api/products/search").param("maxPrice", "18"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].price", is(10.00)))
                 .andExpect(jsonPath("$[1].price", is(15.00)));
 
-        when(productService.searchProductsByPriceRange(new BigDecimal(12), new BigDecimal(25))).thenReturn( List.of( product2, product3) );
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/search")
-                        .param("minPrice", "12.00")
-                        .param("maxPrice", "25.00"))
+        mockMvc.perform(get("/api/products/search")
+                        .param("minPrice", "12")
+                        .param("maxPrice", "25"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].price", is(15.00)))
-                .andExpect(jsonPath("$[1].price", is(20.00)));
+                .andExpect(jsonPath("$[0].price", is(20.00)))
+                .andExpect(jsonPath("$[1].price", is(15.00)));
 
+        mockMvc.perform(get("/api/products/search")
+                        .param("name", "Product")
+                        .param("category", "Test Category"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+
+        mockMvc.perform(get("/api/products/search")
+                        .param("name", "Product")
+                        .param("category", "Test Category")
+                        .param("minPrice", "10")
+                        .param("maxPrice", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
     }
 
-    static class TestSecurityConfig {
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            http.csrf().disable()
-                    .authorizeHttpRequests()
-                    .anyRequest().permitAll()
-                    .and()
-                    .sessionManagement().disable();
-            return http.build();
-        }
-    }
 }

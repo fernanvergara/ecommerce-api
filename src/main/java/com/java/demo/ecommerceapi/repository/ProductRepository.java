@@ -15,6 +15,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByNameContainingIgnoreCase(String name);
     List<Product> findByCategoryNameIgnoreCase(String categoryName);
 
+    @Query("SELECT p FROM Product p WHERE p.price >= :minPrice")
+    List<Product> findByPriceMinimun(@Param("minPrice") BigDecimal minPrice);
+
+    @Query("SELECT p FROM Product p WHERE p.price <= :maxPrice")
+    List<Product> findByPriceMaximun(@Param("maxPrice") BigDecimal maxPrice);
+
     @Query("SELECT p FROM Product p WHERE p.price BETWEEN :minPrice AND :maxPrice")
     List<Product> findByPriceBetween(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice);
 

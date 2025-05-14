@@ -1,6 +1,5 @@
 package com.java.demo.ecommerceapi.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.java.demo.ecommerceapi.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;

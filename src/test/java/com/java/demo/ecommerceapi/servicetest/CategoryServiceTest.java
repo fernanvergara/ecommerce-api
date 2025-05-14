@@ -7,11 +7,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.java.demo.ecommerceapi.exception.ObjectNotFoundException;
-import com.java.demo.ecommerceapi.model.Brand;
 import com.java.demo.ecommerceapi.model.Category;
-import com.java.demo.ecommerceapi.repository.BrandRepository;
 import com.java.demo.ecommerceapi.repository.CategoryRepository;
-import com.java.demo.ecommerceapi.service.BrandService;
 import com.java.demo.ecommerceapi.service.CategoryService;
 
 import java.util.ArrayList;

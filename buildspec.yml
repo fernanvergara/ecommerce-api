@@ -5,8 +5,8 @@ phases:
     commands:
       - echo "Iniciando fase de pre-construcción..."
       - echo "Autenticando con AWS ECR..."
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)
+      - "aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+      - "IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
       - IMAGE_REPO_NAME=732963826765.dkr.ecr.us-east-2.amazonaws.com/api/ecomerce
       - IMAGE_FULL_NAME=$IMAGE_REPO_NAME:$IMAGE_TAG
       - echo "Nombre de la imagen Docker: $IMAGE_FULL_NAME"

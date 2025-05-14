@@ -1,29 +1,18 @@
 version: 0.2
 
 phases:
-  install:
-    commands:
-      - echo "Iniciando fase de instalación..."
-      - apt-get update -y
-      - apt-get install -y docker
-      - echo "Docker instalado correctamente."
   pre_build:
     commands:
       - echo "Iniciando fase de pre-construcción..."
       - echo "Autenticando con AWS ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)
-      - IMAGE_REPO_NAME=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/api/ecomerce # Reemplaza con el nombre de tu repositorio ECR
+      - IMAGE_REPO_NAME=732963826765.dkr.ecr.us-east-2.amazonaws.com/api/ecomerce
       - IMAGE_FULL_NAME=$IMAGE_REPO_NAME:$IMAGE_TAG
       - echo "Nombre de la imagen Docker: $IMAGE_FULL_NAME"
-      - echo "AWS Region: $AWS_DEFAULT_REGION"
-      - echo "AWS Account ID: $AWS_ACCOUNT_ID"
   build:
     commands:
       - echo "Iniciando fase de construcción..."
-      - echo "Ejecutando pruebas unitarias..."
-      # Comandos para ejecutar tus pruebas unitarias (ejemplo para Maven)
-      - ./mvnw clean test
       - echo "Construyendo la imagen Docker..."
       - docker build -t $IMAGE_REPO_NAME .
       - docker tag $IMAGE_REPO_NAME $IMAGE_FULL_NAME
@@ -33,9 +22,12 @@ phases:
       - echo "Subiendo la imagen Docker a ECR..."
       - docker push $IMAGE_FULL_NAME
       - echo "Imagen Docker subida a $IMAGE_FULL_NAME"
-      - echo "Archivo de definición de tarea ECS actualizado en el artefacto de salida..."
-      # Esto crea un archivo de definición de tarea actualizado para CodeDeploy (opcional, si lo usas para ECS)
-      - sed -e "s/IMAGE_FULL_NAME/$IMAGE_FULL_NAME/g" taskdef.template.json > taskdef.json
+      # Si también necesitas actualizar la definición de tarea de ECS, descomenta y ajusta esto
+      # - echo "Actualizando la definición de tarea de ECS..."
+      # - TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition tu-familia-de-tarea --region $AWS_DEFAULT_REGION --output json)
+      # - UPDATED_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq ".taskDefinition | .containerDefinitions[0].image = \"$IMAGE_FULL_NAME\"")
+      # - aws ecs register-task-definition --family tu-familia-de-tarea --container-definitions "$(echo "$UPDATED_TASK_DEFINITION" | jq '.containerDefinitions')" --volumes "$(echo "$TASK_DEFINITION" | jq '.volumes')" --placement-constraints "$(echo "$TASK_DEFINITION" | jq '.placementConstraints')" --network-mode "$(echo "$TASK_DEFINITION" | jq '.networkMode')" --cpu "$(echo "$TASK_DEFINITION" | jq '.cpu')" --memory "$(echo "$TASK_DEFINITION" | jq '.memory')" --region $AWS_DEFAULT_REGION --output json
+      # - echo "Definición de tarea actualizada."
 artifacts:
   files:
-    - taskdef.json # Incluye el archivo de definición de tarea actualizado
+    - '**/*' # O los archivos específicos que quieras como artefactos

@@ -1,0 +1,26 @@
+{
+  "family": "ecommerce-cluster",
+  "containerDefinitions": [
+    {
+      "name": "ecommerce-app-container",
+      "image": "IMAGE_FULL_NAME",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080
+        }
+      ],
+      "memory": 512,
+      "cpu": 256,
+      "essential": true
+    }
+  ],
+  "taskRoleArn": "arn:aws:iam::tu-cuenta-id:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::tu-cuenta-id:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}

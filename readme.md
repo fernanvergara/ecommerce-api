@@ -2,7 +2,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/sophia1981/ecommerceapi)](https://hub.docker.com/repository/docker/sophia1981/ecommerceapi/general)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Este proyecto consiste en una API de microservicios desarrollada con Spring Framework para la gestión de un e-commerce, abarcando productos, inventario (stock) y órdenes. Se ha puesto un énfasis especial en la escalabilidad, la implementación de pruebas y la integración con servicios de AWS.
+Este proyecto consiste en una API de microservicios desarrollada con Spring Framework para la gestión de un e-commerce, abarcando productos, inventario (stock) y órdenes. Se ha puesto un énfasis especial en la escalabilidad, la implementación de pruebas y la integración con servicios de AWS. Para efecto de pruebas, la aplicación crea un usuario (user: admin, pass: 12345) con rol "ROLE_ADMIN" en caso de no existir, al iniciar la ejecución.
 
 ## Tecnologías Utilizadas
 

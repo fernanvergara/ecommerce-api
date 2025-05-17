@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Tag(name = "Authentication", description = "Endpoints for orders management")
+@Tag(name = "Orders", description = "Endpoints for orders management")
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {

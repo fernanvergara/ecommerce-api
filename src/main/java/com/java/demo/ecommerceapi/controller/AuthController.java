@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,12 +28,12 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final com.java.demo.ecommerceapi.config.JwtService jwtService;
-    private final com.java.demo.ecommerceapi.service.UserService userService;
+    private final JwtService jwtService;
+    private final UserService userService;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, UserService userService) {
-        this.authenticationManager = authenticationManager;
+    public AuthController(AuthenticationConfiguration authenticationConfiguration, JwtService jwtService, UserService userService) throws Exception {
+        this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
         this.jwtService = jwtService;
         this.userService = userService;
     }

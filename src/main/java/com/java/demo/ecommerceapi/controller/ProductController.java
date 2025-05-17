@@ -56,6 +56,16 @@ public class ProductController {
         }
     }
 
+    @Operation(
+            summary = "Obtener los datos de un producto dado un ID",
+            description = "Devuelve la informacion de un producto registrado con un ID dado",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Producto encontrado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Product.class))),
+                    @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+            }
+    )
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
@@ -66,6 +76,16 @@ public class ProductController {
         }
     }
 
+    @Operation(
+            summary = "Guardar producto",
+            description = "Registar un nuevo producto",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Producto registrado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Product.class))),
+                    @ApiResponse(responseCode = "400", description = "Productos no encontrado")
+            }
+    )
     @PostMapping
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody Product product) {
         Product newProduct = productService.createProduct(product);
@@ -76,6 +96,16 @@ public class ProductController {
         }
     }
 
+    @Operation(
+            summary = "Actualizar producto",
+            description = "Actualiza un producto registrado dando su ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Producto actualizado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Product.class))),
+                    @ApiResponse(responseCode = "404", description = "Productos no encontrado")
+            }
+    )
     @PutMapping("/{id}")
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
         Product updatedProduct = productService.updateProduct(id, product);
@@ -86,6 +116,16 @@ public class ProductController {
         }
     }
 
+    @Operation(
+            summary = "Eliminar producto",
+            description = "Eliminar un producto",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Producto eliminado",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Product.class))),
+                    @ApiResponse(responseCode = "404", description = "Productos no encontrado")
+            }
+    )    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         Optional<Product> existingProduct = productService.getProductById(id);

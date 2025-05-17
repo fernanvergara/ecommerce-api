@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 
-@Tag(name = "Authentication", description = "Endpoints for category management")
+@Tag(name = "Categories", description = "Endpoints for category management")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {

@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 
-@Tag(name = "Authentication", description = "Endpoints for managing stock products")
+@Tag(name = "Stocks", description = "Endpoints for managing stock products")
 @RestController
 @RequestMapping("/api/stocks")
 public class StockController {

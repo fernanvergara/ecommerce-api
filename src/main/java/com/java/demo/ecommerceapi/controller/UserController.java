@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Map;
 
-@Tag(name = "Authentication", description = "Endpoints for user registration, created by default with the USER role")
+@Tag(name = "Users", description = "Endpoints for user registration, created by default with the USER role")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

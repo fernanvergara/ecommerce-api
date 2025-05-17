@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 
-@Tag(name = "Authentication", description = "Endpoints for brand management")
+@Tag(name = "Brands", description = "Endpoints for brand management")
 @RestController
 @RequestMapping("/api/brands")
 public class BrandController {
